@@ -26,6 +26,8 @@ import { ROLES, can, canSeeTab } from "./roles";
 import { fleetApi, setForceFail, getForceFail } from "./api";
 import { reducer, INITIAL_STATE } from "./reducer";
 
+// Hooks (extracted in Stage 2 of the refactor).
+import { useIsMobile } from "./hooks/useIsMobile";
 // Shared styles + UI atoms (extracted in Stage 1 of the refactor).
 import { inputStyle } from "./styles";
 import { Badge } from "./components/ui/Badge";
@@ -35,22 +37,6 @@ import { Modal } from "./components/ui/Modal";
 import { StatCard } from "./components/ui/StatCard";
 import { Toast } from "./components/ui/Toast";
 import { SkeletonRow } from "./components/ui/Skeletons";
-
-/* ------------------------------ Hooks --------------------------------- */
-
-// Tracks whether the viewport is phone-sized, so layout can switch between
-// the desktop sidebar and a slide-in mobile drawer.
-function useIsMobile(breakpoint = 760): boolean {
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
-  );
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [breakpoint]);
-  return isMobile;
-}
 
 /* ------------------------------ Sidebar ------------------------------- */
 
