@@ -7,7 +7,7 @@ import {
   Pencil, Trash2, X, Fuel, Gauge, CheckCircle2,
   Clock, DollarSign, TrendingUp, Eye, ArrowLeft, Calendar, Hash, Phone,
   Shield, LogOut, Lock, ChevronDown, ScrollText, Filter, ArrowRight,
-  RefreshCw, AlertCircle, Loader, Wifi,
+  RefreshCw, AlertCircle, Loader, Wifi, Menu,
 } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -25,6 +25,22 @@ import {
 import { ROLES, can, canSeeTab } from "./roles";
 import { fleetApi, setForceFail, getForceFail } from "./api";
 import { reducer, INITIAL_STATE } from "./reducer";
+
+/* ------------------------------ Hooks --------------------------------- */
+
+// Tracks whether the viewport is phone-sized, so layout can switch between
+// the desktop sidebar and a slide-in mobile drawer.
+function useIsMobile(breakpoint = 760): boolean {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 /* ------------------------------ UI atoms ------------------------------ */
 
@@ -108,9 +124,26 @@ const NAV: NavItem[] = [
   { id: "audit", label: "Audit Log", icon: <ScrollText size={18} /> },
 ];
 
-function Sidebar({ tab, setTab, role }: { tab: TabId; setTab: (t: TabId) => void; role: RoleKey }) {
-  return (
-    <div style={{ width: 220, background: C.panel, borderRight: `1px solid ${C.border}`, padding: 18, flexShrink: 0 }}>
+function Sidebar({ tab, setTab, role, isMobile, open, onClose }: {
+  tab: TabId; setTab: (t: TabId) => void; role: RoleKey;
+  isMobile: boolean; open: boolean; onClose: () => void;
+}) {
+  const handlePick = (id: TabId, allowed: boolean) => {
+    if (!allowed) return;
+    setTab(id);
+    if (isMobile) onClose();
+  };
+
+  const panel = (
+    <div style={{
+      width: 220, background: C.panel, borderRight: `1px solid ${C.border}`, padding: 18,
+      flexShrink: 0, boxSizing: "border-box",
+      ...(isMobile
+        ? { position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 70, overflowY: "auto",
+            transform: open ? "translateX(0)" : "translateX(-100%)", transition: "transform .25s ease",
+            boxShadow: open ? "0 0 40px #000a" : "none" }
+        : {}),
+    }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, padding: "4px 6px" }}>
         <div style={{ width: 34, height: 34, borderRadius: 9, background: C.accent, display: "grid", placeItems: "center", fontWeight: 900, color: "#fff" }}>C</div>
         <div>
@@ -125,7 +158,7 @@ function Sidebar({ tab, setTab, role }: { tab: TabId; setTab: (t: TabId) => void
       {NAV.map((n) => {
         const allowed = canSeeTab(role, n.id);
         return (
-          <div key={n.id} onClick={() => allowed && setTab(n.id)} title={allowed ? "" : "Not available for your role"}
+          <div key={n.id} onClick={() => handlePick(n.id, allowed)} title={allowed ? "" : "Not available for your role"}
             style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 9, cursor: allowed ? "pointer" : "not-allowed", marginBottom: 4, fontSize: 14, fontWeight: 600, opacity: allowed ? 1 : .35, color: tab === n.id ? "#fff" : C.dim, background: tab === n.id ? C.accent : "transparent", transition: "background .15s" }}>
             {n.icon}{n.label}
             {!allowed && <Lock size={12} style={{ marginLeft: "auto" }} />}
@@ -133,6 +166,18 @@ function Sidebar({ tab, setTab, role }: { tab: TabId; setTab: (t: TabId) => void
         );
       })}
     </div>
+  );
+
+  if (!isMobile) return panel;
+
+  // Mobile: drawer + tap-to-close backdrop.
+  return (
+    <>
+      {open && (
+        <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 65 }} />
+      )}
+      {panel}
+    </>
   );
 }
 
@@ -379,8 +424,8 @@ function Vehicles({ state, dispatch, onOpen, role }: {
           <Btn onClick={load}><RefreshCw size={15} /> Retry</Btn>
         </div>
       ) : (
-        <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 640 }}>
             <thead>
               <tr style={{ color: C.dim, textAlign: "left", background: C.panel2 }}>
                 {["ID", "Vehicle", "Status", "Driver", "Odometer", "Power", "Cost/mo", ""].map((h) => <th key={h} style={{ padding: "12px 14px", fontWeight: 600 }}>{h}</th>)}
@@ -970,6 +1015,8 @@ export default function App() {
   const [role, setRole] = useState<RoleKey | null>(null);
   const [tab, setTab] = useState<TabId>("dashboard");
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [state, rawDispatch] = useReducer(reducer, {
     ...INITIAL_STATE, drivers: SEED_DRIVERS, maintenance: SEED_MAINTENANCE,
   } as AppState);
@@ -1009,12 +1056,20 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-      <Sidebar tab={tab} setTab={goTab} role={role} />
-      <div style={{ flex: 1, padding: 24, overflowY: "auto", maxHeight: "100vh" }}>
+      <Sidebar tab={tab} setTab={goTab} role={role} isMobile={isMobile} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <div style={{ flex: 1, minWidth: 0, padding: isMobile ? 14 : 24, overflowY: "auto", maxHeight: "100vh" }}>
         <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{heading}</h2>
-            <div style={{ fontSize: 13, color: C.dim }}>Costarella Transportation · demo data</div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, minWidth: 0 }}>
+            {isMobile && (
+              <button onClick={() => setDrawerOpen(true)} title="Open menu"
+                style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 9, padding: 9, cursor: "pointer", color: C.text, display: "inline-flex", flexShrink: 0 }}>
+                <Menu size={20} />
+              </button>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 800 }}>{heading}</h2>
+              <div style={{ fontSize: 13, color: C.dim }}>Costarella Transportation · demo data</div>
+            </div>
           </div>
           <RoleSwitcher role={role} onChange={switchRole} onLogout={() => setRole(null)} />
         </div>
