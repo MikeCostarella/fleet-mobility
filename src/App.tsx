@@ -968,6 +968,7 @@ function RoleSwitcher({ role, onChange, onLogout }: {
   role: RoleKey; onChange: (r: RoleKey) => void; onLogout: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
   const r = ROLES[role];
   return (
     <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 10 }}>
@@ -980,7 +981,14 @@ function RoleSwitcher({ role, onChange, onLogout }: {
         <ChevronDown size={15} color={C.dim} />
       </div>
       {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 12, padding: 6, width: 230, zIndex: 40, boxShadow: "0 10px 30px #0008" }}>
+        <div style={{
+          position: "absolute", top: "calc(100% + 6px)",
+          // Anchor left on mobile (the switcher sits near the left edge there);
+          // anchor right on desktop. Cap width to the viewport so it never clips.
+          ...(isMobile ? { left: 0 } : { right: 0 }),
+          background: C.panel, border: `1px solid ${C.border}`, borderRadius: 12, padding: 6,
+          width: 230, maxWidth: "calc(100vw - 28px)", zIndex: 40, boxShadow: "0 10px 30px #0008",
+        }}>
           <div style={{ fontSize: 11, color: C.dim, fontWeight: 700, padding: "6px 10px", letterSpacing: .4 }}>SWITCH ROLE</div>
           {(Object.entries(ROLES) as [RoleKey, typeof ROLES[RoleKey]][]).map(([key, rr]) => (
             <div key={key} onClick={() => { onChange(key); setOpen(false); }}
