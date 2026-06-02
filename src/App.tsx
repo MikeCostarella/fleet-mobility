@@ -4,7 +4,7 @@ import {
 } from "react";
 import {
   Truck, Users, Wrench, MapPin, LayoutDashboard, Plus, Search,
-  Pencil, Trash2, X, Fuel, Gauge, CheckCircle2,
+  Pencil, Trash2, Fuel, Gauge, CheckCircle2,
   Clock, DollarSign, TrendingUp, Eye, ArrowLeft, Calendar, Hash, Phone,
   Shield, LogOut, Lock, ChevronDown, ScrollText, Filter, ArrowRight,
   RefreshCw, AlertCircle, Loader, Wifi, Menu,
@@ -26,6 +26,16 @@ import { ROLES, can, canSeeTab } from "./roles";
 import { fleetApi, setForceFail, getForceFail } from "./api";
 import { reducer, INITIAL_STATE } from "./reducer";
 
+// Shared styles + UI atoms (extracted in Stage 1 of the refactor).
+import { inputStyle } from "./styles";
+import { Badge } from "./components/ui/Badge";
+import { Btn } from "./components/ui/Btn";
+import { Field } from "./components/ui/Field";
+import { Modal } from "./components/ui/Modal";
+import { StatCard } from "./components/ui/StatCard";
+import { Toast } from "./components/ui/Toast";
+import { SkeletonRow } from "./components/ui/Skeletons";
+
 /* ------------------------------ Hooks --------------------------------- */
 
 // Tracks whether the viewport is phone-sized, so layout can switch between
@@ -40,76 +50,6 @@ function useIsMobile(breakpoint = 760): boolean {
     return () => window.removeEventListener("resize", onResize);
   }, [breakpoint]);
   return isMobile;
-}
-
-/* ------------------------------ UI atoms ------------------------------ */
-
-function Badge({ color, children }: { color: string; children: ReactNode }) {
-  return <span style={{ color, background: `${color}22`, border: `1px solid ${color}55`, padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>{children}</span>;
-}
-
-type BtnVariant = "primary" | "ghost" | "icon";
-function Btn({ children, onClick, variant = "primary", small, disabled, title }: {
-  children: ReactNode; onClick?: () => void; variant?: BtnVariant;
-  small?: boolean; disabled?: boolean; title?: string;
-}) {
-  const styles: Record<BtnVariant, CSSProperties> = {
-    primary: { background: C.accent, color: "#fff", border: "none" },
-    ghost: { background: "transparent", color: C.dim, border: `1px solid ${C.border}` },
-    icon: { background: "transparent", color: C.dim, border: "none", padding: 6 },
-  };
-  return (
-    <button onClick={disabled ? undefined : onClick} disabled={disabled} title={disabled && title ? title : undefined}
-      style={{ ...styles[variant], cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? .38 : 1, borderRadius: 8, padding: small ? "6px 12px" : "9px 16px", fontSize: 13, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6, transition: "opacity .15s" }}
-      onMouseOver={(e) => { if (!disabled) e.currentTarget.style.opacity = ".85"; }}
-      onMouseOut={(e) => { if (!disabled) e.currentTarget.style.opacity = "1"; }}>
-      {children}
-    </button>
-  );
-}
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label style={{ display: "block", marginBottom: 14 }}><span style={{ display: "block", fontSize: 12, color: C.dim, marginBottom: 5, fontWeight: 600, letterSpacing: .3 }}>{label}</span>{children}</label>;
-}
-const inputStyle: CSSProperties = { width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, boxSizing: "border-box" };
-
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
-  return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#000a", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, width: "100%", maxWidth: 480, maxHeight: "85vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{title}</h3>
-          <Btn variant="icon" onClick={onClose}><X size={18} /></Btn>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, sub, color }: {
-  icon: ReactNode; label: string; value: ReactNode; sub?: string; color: string;
-}) {
-  return (
-    <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, flex: 1, minWidth: 170 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, color: C.dim, fontSize: 13, fontWeight: 600 }}>
-        <span style={{ color }}>{icon}</span>{label}
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 800, marginTop: 8 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: C.dim, marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-}
-
-function Toast({ message, onClose }: { message: string; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
-  return (
-    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 60, background: C.panel, border: `1px solid ${C.red}66`, borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, maxWidth: 360, boxShadow: "0 10px 30px #0008" }}>
-      <AlertCircle size={18} color={C.red} />
-      <span style={{ fontSize: 13, flex: 1 }}>{message}</span>
-      <Btn variant="icon" onClick={onClose}><X size={16} /></Btn>
-    </div>
-  );
 }
 
 /* ------------------------------ Sidebar ------------------------------- */
@@ -294,18 +234,6 @@ function VehicleForm({ initial, drivers, onSave, onClose, saving }: {
         </Btn>
       </div>
     </>
-  );
-}
-
-function SkeletonRow() {
-  return (
-    <tr style={{ borderTop: `1px solid ${C.border}` }}>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <td key={i} style={{ padding: "14px 14px" }}>
-          <div style={{ height: 12, borderRadius: 6, background: `linear-gradient(90deg, ${C.panel2} 25%, ${C.border} 50%, ${C.panel2} 75%)`, backgroundSize: "200% 100%", animation: "fleetShimmer 1.2s infinite" }} />
-        </td>
-      ))}
-    </tr>
   );
 }
 
