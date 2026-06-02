@@ -140,6 +140,7 @@ function Sidebar({ tab, setTab, role, isMobile, open, onClose }: {
       flexShrink: 0, boxSizing: "border-box",
       ...(isMobile
         ? { position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 70, overflowY: "auto",
+            paddingTop: "calc(18px + env(safe-area-inset-top))",
             transform: open ? "translateX(0)" : "translateX(-100%)", transition: "transform .25s ease",
             boxShadow: open ? "0 0 40px #000a" : "none" }
         : {}),
@@ -1057,17 +1058,23 @@ export default function App() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <Sidebar tab={tab} setTab={goTab} role={role} isMobile={isMobile} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <div style={{ flex: 1, minWidth: 0, padding: isMobile ? 14 : 24, overflowY: "auto", maxHeight: "100vh" }}>
-        <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, minWidth: 0 }}>
+      <div style={{
+        flex: 1, minWidth: 0, overflowY: "auto", maxHeight: "100vh",
+        padding: isMobile ? 14 : 24,
+        // Respect the iPhone status-bar / notch safe area so the header isn't
+        // pushed under the system clock. env() resolves to 0 on devices without one.
+        paddingTop: isMobile ? "calc(14px + env(safe-area-inset-top))" : 24,
+      }}>
+        <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             {isMobile && (
-              <button onClick={() => setDrawerOpen(true)} title="Open menu"
-                style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 9, padding: 9, cursor: "pointer", color: C.text, display: "inline-flex", flexShrink: 0 }}>
+              <button onClick={() => setDrawerOpen(true)} title="Open menu" aria-label="Open menu"
+                style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 9, padding: 9, cursor: "pointer", color: C.text, display: "inline-flex", flexShrink: 0, alignItems: "center", justifyContent: "center" }}>
                 <Menu size={20} />
               </button>
             )}
             <div style={{ minWidth: 0 }}>
-              <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 800 }}>{heading}</h2>
+              <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 800, lineHeight: 1.2 }}>{heading}</h2>
               <div style={{ fontSize: 13, color: C.dim }}>Costarella Transportation · demo data</div>
             </div>
           </div>
