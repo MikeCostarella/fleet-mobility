@@ -4,6 +4,8 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import type { AppState, AppDispatch, Driver, DriverDraft, RoleKey } from "../types";
 import { C } from "../data";
 import { can } from "../roles";
+import { useDraft } from "../hooks/useDraft";
+import { card } from "../styles";
 import { inputStyle } from "../styles";
 import { Badge } from "./ui/Badge";
 import { Btn } from "./ui/Btn";
@@ -17,8 +19,7 @@ type DriverModal = { mode: "add"; driver: DriverDraft } | { mode: "edit"; driver
 function DriverForm({ initial, onSave, onClose }: {
   initial: Driver | DriverDraft; onSave: (f: Driver | DriverDraft) => void; onClose: () => void;
 }) {
-  const [f, setF] = useState(initial);
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
+  const [f, set] = useDraft(initial);
   return (
     <>
       <Field label="NAME"><input style={inputStyle} value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
@@ -45,7 +46,7 @@ export function Drivers({ state, dispatch, role }: { state: AppState; dispatch: 
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
         {drivers.map((d) => (
-          <div key={d.id} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+          <div key={d.id} style={card()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                 <div style={{ width: 42, height: 42, borderRadius: 999, background: C.accent2, display: "grid", placeItems: "center", fontWeight: 800, color: "#fff" }}>{d.name.split(" ").map((n) => n[0]).join("")}</div>

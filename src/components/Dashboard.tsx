@@ -9,6 +9,7 @@ import {
 
 import type { AppState } from "../types";
 import { COST_TREND, C, PIE_COLORS } from "../data";
+import { card } from "../styles";
 import { StatCard } from "./ui/StatCard";
 
 export function Dashboard({ state }: { state: AppState }) {
@@ -34,7 +35,7 @@ export function Dashboard({ state }: { state: AppState }) {
       </div>
 
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-        <div style={{ flex: 2, minWidth: 320, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+        <div style={card({ flex: 2, minWidth: 320 })}>
           <h4 style={{ margin: "0 0 14px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><TrendingUp size={16} color={C.accent} /> Fleet Cost Trend</h4>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={COST_TREND}>
@@ -47,7 +48,7 @@ export function Dashboard({ state }: { state: AppState }) {
           </ResponsiveContainer>
         </div>
 
-        <div style={{ flex: 1, minWidth: 240, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+        <div style={card({ flex: 1, minWidth: 240 })}>
           <h4 style={{ margin: "0 0 14px", fontSize: 14 }}>Fleet by Status</h4>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
@@ -61,7 +62,7 @@ export function Dashboard({ state }: { state: AppState }) {
         </div>
       </div>
 
-      <div style={{ marginTop: 14, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+      <div style={card({ marginTop: 14 })}>
         <h4 style={{ margin: "0 0 14px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><Fuel size={16} color={C.accent2} /> Fleet by Powertrain</h4>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={fuelData}>

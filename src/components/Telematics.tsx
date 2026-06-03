@@ -3,23 +3,21 @@ import { MapPin, Users, Wrench, Fuel, Gauge } from "lucide-react";
 
 import type { AppState, Vehicle } from "../types";
 import { C, STATUS_COLOR } from "../data";
+import { projectOhio } from "../lib/geo";
+import { card } from "../styles";
 import { Badge } from "./ui/Badge";
 
 export function Telematics({ state }: { state: AppState }) {
   const { vehicles, drivers } = state;
   const active = vehicles.filter((v) => v.status !== "Retired");
   const [sel, setSel] = useState<Vehicle | null>(null);
-  const minLng = -84.9, maxLng = -80.4, minLat = 38.3, maxLat = 42.0;
   const W = 640, H = 420;
-  const proj = (lat: number, lng: number) => ({
-    x: ((lng - minLng) / (maxLng - minLng)) * W,
-    y: H - ((lat - minLat) / (maxLat - minLat)) * H,
-  });
+  const proj = (lat: number, lng: number) => projectOhio(lat, lng, W, H);
   const driverName = (id: string | null) => drivers.find((d) => d.id === id)?.name || "Unassigned";
 
   return (
     <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-      <div style={{ flex: 2, minWidth: 360, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16 }}>
+      <div style={card({ flex: 2, minWidth: 360, padding: 16 })}>
         <h4 style={{ margin: "0 0 6px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><MapPin size={16} color={C.accent} /> Live Fleet Positions — Ohio Region</h4>
         <div style={{ fontSize: 12, color: C.dim, marginBottom: 12 }}>Simulated GPS telemetry · {active.length} units online</div>
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: C.bg, borderRadius: 10, border: `1px solid ${C.border}` }}>
@@ -39,7 +37,7 @@ export function Telematics({ state }: { state: AppState }) {
         </svg>
       </div>
 
-      <div style={{ flex: 1, minWidth: 240, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+      <div style={card({ flex: 1, minWidth: 240 })}>
         <h4 style={{ margin: "0 0 14px", fontSize: 14 }}>Unit Detail</h4>
         {sel ? (
           <div style={{ fontSize: 13, lineHeight: 2 }}>

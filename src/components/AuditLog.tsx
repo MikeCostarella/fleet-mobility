@@ -3,7 +3,7 @@ import { Search, Filter, ArrowRight } from "lucide-react";
 
 import type { AppState, AuditAction, FieldChange } from "../types";
 import { C } from "../data";
-import { inputStyle } from "../styles";
+import { inputStyle, card } from "../styles";
 import { Badge } from "./ui/Badge";
 
 const ACTION_COLOR: Record<AuditAction, string> = { Created: C.green, Updated: C.accent2, Deleted: C.red };
@@ -47,7 +47,7 @@ export function AuditLog({ state }: { state: AppState }) {
         {rows.length !== audit.length && <span>· {rows.length} shown</span>}
       </div>
 
-      <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+      <div style={card({ padding: 0, overflow: "hidden" })}>
         {rows.length === 0 ? (
           <div style={{ padding: 40, textAlign: "center", color: C.dim, fontSize: 14 }}>
             {audit.length === 0 ? "No activity recorded yet. Create, edit, or delete something to see it logged here." : "No events match your filters."}

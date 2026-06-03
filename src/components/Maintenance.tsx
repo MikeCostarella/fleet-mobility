@@ -4,6 +4,8 @@ import { Plus, Pencil, Trash2, CheckCircle2, Clock } from "lucide-react";
 import type { AppState, AppDispatch, Vehicle, WorkOrder, WorkOrderDraft, RoleKey } from "../types";
 import { C, PRIORITY_COLOR } from "../data";
 import { can } from "../roles";
+import { useDraft } from "../hooks/useDraft";
+import { card } from "../styles";
 import { inputStyle } from "../styles";
 import { Badge } from "./ui/Badge";
 import { Btn } from "./ui/Btn";
@@ -22,8 +24,7 @@ type WOModal = { mode: "add"; wo: WorkOrderDraft } | { mode: "edit"; wo: WorkOrd
 function WOForm({ initial, vehicles, onSave, onClose }: {
   initial: WorkOrder | WorkOrderDraft; vehicles: Vehicle[]; onSave: (f: WorkOrder | WorkOrderDraft) => void; onClose: () => void;
 }) {
-  const [f, setF] = useState(initial);
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
+  const [f, set] = useDraft(initial);
   return (
     <>
       <Field label="VEHICLE">
@@ -62,7 +63,7 @@ export function Maintenance({ state, dispatch, role }: { state: AppState; dispat
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
         {cols.map((col) => (
-          <div key={col} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14 }}>
+          <div key={col} style={card({ padding: 14 })}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
               {WO_ICON[col]} {col}
               <span style={{ marginLeft: "auto", color: C.dim, fontSize: 12 }}>{maintenance.filter((m) => m.status === col).length}</span>

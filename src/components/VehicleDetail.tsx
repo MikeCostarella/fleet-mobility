@@ -8,6 +8,8 @@ import type { AppState, AppDispatch, Vehicle, VehicleDraft, RoleKey } from "../t
 import { C, STATUS_COLOR, PRIORITY_COLOR } from "../data";
 import { can } from "../roles";
 import { fleetApi } from "../api";
+import { projectOhio } from "../lib/geo";
+import { card } from "../styles";
 import { Badge } from "./ui/Badge";
 import { Btn } from "./ui/Btn";
 import { Modal } from "./ui/Modal";
@@ -65,13 +67,10 @@ export function VehicleDetail({ vehicleId, state, dispatch, onBack, role }: {
   const workOrders = state.maintenance.filter((m) => m.vehicleId === v.id);
   const totalMaint = workOrders.reduce((s, m) => s + m.cost, 0);
   const W = 360, H = 200;
-  const minLng = -84.9, maxLng = -80.4, minLat = 38.3, maxLat = 42.0;
-  const px = ((v.lng - minLng) / (maxLng - minLng)) * W;
-  const py = H - ((v.lat - minLat) / (maxLat - minLat)) * H;
+  const { x: px, y: py } = projectOhio(v.lat, v.lng, W, H);
 
   return (
     <div>
-      <style>{`@keyframes fleetSpin{to{transform:rotate(360deg)}}`}</style>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
         <Btn variant="ghost" onClick={onBack}><ArrowLeft size={15} /> Back to vehicles</Btn>
         <div style={{ display: "flex", gap: 8 }}>
@@ -102,7 +101,7 @@ export function VehicleDetail({ vehicleId, state, dispatch, onBack, role }: {
 
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+          <div style={card({ marginBottom: 14 })}>
             <h4 style={{ margin: "0 0 14px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><Users size={16} color={C.accent2} /> Assigned Driver</h4>
             {driver ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -116,7 +115,7 @@ export function VehicleDetail({ vehicleId, state, dispatch, onBack, role }: {
             ) : <div style={{ color: C.dim, fontSize: 13 }}>Unassigned</div>}
           </div>
 
-          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+          <div style={card()}>
             <h4 style={{ margin: "0 0 12px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><MapPin size={16} color={C.accent} /> Last Known Position</h4>
             <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", background: C.bg, borderRadius: 10, border: `1px solid ${C.border}` }}>
               {Array.from({ length: 7 }).map((_, i) => <line key={`v${i}`} x1={i * W / 6} y1={0} x2={i * W / 6} y2={H} stroke={C.border} strokeWidth={.5} />)}
@@ -128,7 +127,7 @@ export function VehicleDetail({ vehicleId, state, dispatch, onBack, role }: {
           </div>
         </div>
 
-        <div style={{ flex: 1, minWidth: 280, background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+        <div style={card({ flex: 1, minWidth: 280 })}>
           <h4 style={{ margin: "0 0 14px", fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}><Wrench size={16} color={C.amber} /> Service History</h4>
           {workOrders.length ? workOrders.map((m) => (
             <div key={m.id} style={{ borderLeft: `3px solid ${PRIORITY_COLOR[m.priority]}`, background: C.panel2, borderRadius: "0 8px 8px 0", padding: "10px 14px", marginBottom: 10 }}>

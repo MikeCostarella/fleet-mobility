@@ -7,6 +7,8 @@ import type { AppState, AppDispatch, Vehicle, Driver, VehicleDraft, RoleKey } fr
 import { C, STATUS_COLOR } from "../data";
 import { can } from "../roles";
 import { fleetApi, setForceFail, getForceFail } from "../api";
+import { useDraft } from "../hooks/useDraft";
+import { card } from "../styles";
 import { inputStyle } from "../styles";
 import { Badge } from "./ui/Badge";
 import { Btn } from "./ui/Btn";
@@ -24,8 +26,7 @@ export function VehicleForm({ initial, drivers, onSave, onClose, saving }: {
   onClose: () => void;
   saving: boolean;
 }) {
-  const [f, setF] = useState(initial);
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
+  const [f, set] = useDraft(initial);
   return (
     <>
       <div style={{ display: "flex", gap: 12 }}>
@@ -143,8 +144,6 @@ export function Vehicles({ state, dispatch, onOpen, role }: {
 
   return (
     <div>
-      <style>{`@keyframes fleetShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes fleetSpin{to{transform:rotate(360deg)}}`}</style>
-
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
           <Search size={15} style={{ position: "absolute", left: 11, top: 11, color: C.dim }} />
@@ -176,7 +175,7 @@ export function Vehicles({ state, dispatch, onOpen, role }: {
           <Btn onClick={load}><RefreshCw size={15} /> Retry</Btn>
         </div>
       ) : (
-        <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", overflowX: "auto" }}>
+        <div style={card({ padding: 0, overflow: "hidden", overflowX: "auto" })}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 640 }}>
             <thead>
               <tr style={{ color: C.dim, textAlign: "left", background: C.panel2 }}>

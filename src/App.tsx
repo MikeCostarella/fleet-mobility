@@ -21,6 +21,8 @@ import { reducer, INITIAL_STATE } from "./reducer";
 
 // Hooks (extracted in Stage 2 of the refactor).
 import { useIsMobile } from "./hooks/useIsMobile";
+// Shared styles (GlobalStyles injects the app-wide keyframes once).
+import { GlobalStyles } from "./styles";
 // Feature components (extracted in Stage 3 of the refactor).
 import { Dashboard } from "./components/Dashboard";
 import { Telematics } from "./components/Telematics";
@@ -232,6 +234,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      <GlobalStyles />
       <Sidebar tab={tab} setTab={goTab} role={role} isMobile={isMobile} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <div style={{
         flex: 1, minWidth: 0, overflowY: "auto", maxHeight: "100vh",
